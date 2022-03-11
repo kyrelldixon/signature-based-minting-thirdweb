@@ -1,15 +1,16 @@
+import { Box, Button, Text } from '@chakra-ui/react'
 import { useAddress, useMetamask } from '@thirdweb-dev/react'
 
 export const ConnectMetamaskButton = () => {
   const connectWithMetamask = useMetamask()
   const address = useAddress()
   return (
-    <div>
+    <Box>
       {address ? (
-        <h4>Connected as {address}</h4>
+        <Text isTruncated>Connected as {address}</Text>
       ) : (
-        <button onClick={connectWithMetamask}>Connect Metamask Wallet</button>
+        <Button onClick={connectWithMetamask}>Connect Metamask Wallet</Button>
       )}
-    </div>
+    </Box>
   )
 }
