@@ -27,7 +27,7 @@ function CreateNftSignatureForm() {
   const {
     register,
     handleSubmit,
-    formState: { isSubmitting, isSubmitSuccessful },
+    formState: { isSubmitting, isSubmitSuccessful, isDirty },
   } = useForm<FormData>()
   const [nfts, savePayload] = useLocalStorage<SignedPayload[]>('nfts', [])
   const onSubmit = async (data) => {
@@ -36,14 +36,18 @@ function CreateNftSignatureForm() {
   }
 
   const nftContract = useNFTCollection(
-    '0xB2626f516112Ef0B80B8D71E5Aa3F0617AC609b1'
+    process.env.NEXT_PUBLIC_NFT_COLLECTION_ADDRESS
   )
 
   const generateSignature = async (metadata: NFTMetadata) => {
+    // Arbitrarily choosing 30 days for the demo
+    const futureDateMilliseconds = Date.now() + daysToMilliseconds(30)
+    const mintEndTime = new Date(futureDateMilliseconds)
     const signedPayload = await nftContract.signature.generate({
       currencyAddress: NATIVE_TOKEN_ADDRESS,
       price: 0,
       metadata,
+      mintEndTime,
     })
 
     return signedPayload
@@ -64,7 +68,7 @@ function CreateNftSignatureForm() {
 
         <Button
           isLoading={isSubmitting}
-          isDisabled={isSubmitSuccessful}
+          isDisabled={isSubmitSuccessful && !isDirty}
           type="submit"
         >
           {isSubmitSuccessful ? 'Saved!' : 'Generate'}
@@ -72,4 +76,8 @@ function CreateNftSignatureForm() {
       </Stack>
     </form>
   )
+}
+
+function daysToMilliseconds(days: number) {
+  return days * 24 * 60 * 60 * 1000
 }

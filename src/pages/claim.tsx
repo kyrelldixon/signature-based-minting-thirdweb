@@ -25,8 +25,6 @@ import { useForm } from 'react-hook-form'
 import { PageLayout } from '../components/page-layout'
 import { useLocalStorage } from '../hooks/use-local-storage'
 
-const nftCollectionAddress = '0xB2626f516112Ef0B80B8D71E5Aa3F0617AC609b1'
-
 export default function Claim() {
   const [nftPayloads] = useLocalStorage<SignedPayload[]>('nfts', [])
 
@@ -63,10 +61,12 @@ function Nft({ nft }: NftProps) {
     register,
     handleSubmit,
     reset,
-    formState: { errors, isSubmitting, isSubmitSuccessful },
+    formState: { errors, isSubmitting, isSubmitSuccessful, isDirty },
   } = useForm<FormData>()
   const initialRef = useRef()
-  const nftContract = useNFTCollection(nftCollectionAddress)
+  const nftContract = useNFTCollection(
+    process.env.NEXT_PUBLIC_NFT_COLLECTION_ADDRESS
+  )
   const toast = useToast()
 
   const validateSignature = (signature: string) =>
@@ -142,7 +142,7 @@ function Nft({ nft }: NftProps) {
             <ModalFooter>
               <Button
                 isLoading={isSubmitting}
-                isDisabled={isSubmitSuccessful}
+                isDisabled={isSubmitSuccessful && !isDirty}
                 type="submit"
                 colorScheme="blue"
                 mr={3}
