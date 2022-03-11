@@ -1,56 +1,69 @@
-import {
-  Link as ChakraLink,
-  Text,
-  Code,
-  List,
-  ListIcon,
-  ListItem,
-} from '@chakra-ui/react'
-import { CheckCircleIcon, LinkIcon } from '@chakra-ui/icons'
+import { Button, Heading, Input, Stack, Textarea } from '@chakra-ui/react'
+import { useForm } from 'react-hook-form'
+import { PageLayout } from '../components/page-layout'
+import { useNFTCollection } from '@thirdweb-dev/react'
+import { NATIVE_TOKEN_ADDRESS, NFTMetadata } from '@thirdweb-dev/sdk'
 
-import { Hero } from '../components/Hero'
-import { Container } from '../components/Container'
-import { Main } from '../components/Main'
-import { DarkModeSwitch } from '../components/DarkModeSwitch'
-import { CTA } from '../components/CTA'
-import { Footer } from '../components/Footer'
+type FormData = {
+  name: string
+  description: string
+}
 
-const Index = () => (
-  <Container height="100vh">
-    <Hero />
-    <Main>
-      <Text>
-        Example repository of <Code>Next.js</Code> + <Code>chakra-ui</Code> +{' '}
-        <Code>TypeScript</Code>.
-      </Text>
+export default function Home() {
+  return (
+    <PageLayout>
+      <Heading>Create an NFT</Heading>
+      <CreateNftSignatureForm />
+    </PageLayout>
+  )
+}
 
-      <List spacing={3} my={0}>
-        <ListItem>
-          <ListIcon as={CheckCircleIcon} color="green.500" />
-          <ChakraLink
-            isExternal
-            href="https://chakra-ui.com"
-            flexGrow={1}
-            mr={2}
-          >
-            Chakra UI <LinkIcon />
-          </ChakraLink>
-        </ListItem>
-        <ListItem>
-          <ListIcon as={CheckCircleIcon} color="green.500" />
-          <ChakraLink isExternal href="https://nextjs.org" flexGrow={1} mr={2}>
-            Next.js <LinkIcon />
-          </ChakraLink>
-        </ListItem>
-      </List>
-    </Main>
+function CreateNftSignatureForm() {
+  const {
+    register,
+    handleSubmit,
+    formState: { isSubmitting, isSubmitSuccessful },
+  } = useForm<FormData>()
+  const onSubmit = (data) => {
+    console.log({ data })
+    generateSignature(data)
+  }
 
-    <DarkModeSwitch />
-    <Footer>
-      <Text>Next ❤️ Chakra</Text>
-    </Footer>
-    <CTA />
-  </Container>
-)
+  const nftContract = useNFTCollection(
+    '0xB2626f516112Ef0B80B8D71E5Aa3F0617AC609b1'
+  )
 
-export default Index
+  const generateSignature = async (metadata: NFTMetadata) => {
+    const signedPayload = await nftContract.signature.generate({
+      currencyAddress: NATIVE_TOKEN_ADDRESS,
+      price: 0,
+      metadata,
+    })
+
+    console.log({ signedPayload })
+  }
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)}>
+      <Stack>
+        <Input
+          type="text"
+          placeholder="Board Donkeys"
+          {...register('name', {})}
+        />
+        <Textarea
+          placeholder="A chess board played with donkeys"
+          {...register('description', {})}
+        />
+
+        <Button
+          isLoading={isSubmitting}
+          isDisabled={isSubmitSuccessful}
+          type="submit"
+        >
+          Generate
+        </Button>
+      </Stack>
+    </form>
+  )
+}
